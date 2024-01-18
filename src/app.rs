@@ -8,6 +8,17 @@ pub struct Task {
     deadline: String,
 }
 
+pub enum CurrentScreen {
+    Todolist,
+    Input,
+}
+
+impl Default for CurrentScreen {
+    fn default() -> Self {
+        CurrentScreen::Todolist
+    }
+}
+
 impl Task {
     pub fn get_format_string(&self) -> String {
         format!(
@@ -19,11 +30,13 @@ impl Task {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct App {
     pub should_quit: bool,
     pub todo_items: Vec<String>,
     pub todo_select_state: ListState,
+    pub current_input: String,
+    pub current_screen: CurrentScreen,
 }
 
 impl App {
@@ -38,6 +51,13 @@ impl App {
     /// Set should_quit to true to quit the application.
     pub fn quit(&mut self) {
         self.should_quit = true;
+    }
+
+    pub fn toggle_screen(&mut self) {
+        match self.current_screen {
+            CurrentScreen::Input => self.current_screen = CurrentScreen::Todolist,
+            CurrentScreen::Todolist => self.current_screen = CurrentScreen::Input,
+        }
     }
 
     pub fn liststate_increment(&mut self) {
