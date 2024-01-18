@@ -12,7 +12,7 @@ pub mod tui;
 
 /// Application updater.
 pub mod update;
-use app::App;
+use app::{App, Task};
 use event::{Event, EventHandler};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use tui::Tui;
@@ -24,12 +24,14 @@ fn main() -> Result<()> {
     let mut app = App::new();
 
     app.todo_items = vec![
+        String::from("TASK                DEADLINE"),
         String::from("lol"),
         String::from("epic"),
         String::from("wow"),
         String::from("lmaoo"),
     ];
-    // app.todo_select_state.select(Some(0));
+    app.todo_select_state.select(Some(1));
+    app.load_task_database();
 
     // Initialize the terminal user interface.
     let backend = CrosstermBackend::new(std::io::stderr());

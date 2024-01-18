@@ -1,5 +1,24 @@
 use ratatui::widgets::ListState;
-use std::cmp::{max, min};
+use rusqlite::{Connection, Result};
+use std::cmp::min;
+#[derive(Debug)]
+pub struct Task {
+    id: u32,
+    title: String,
+    deadline: String,
+}
+
+impl Task {
+    pub fn get_format_string(&self) -> String {
+        format!(
+            "{}{}{}",
+            self.title,
+            " ".repeat(20 - self.title.len()),
+            self.deadline
+        )
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct App {
     pub should_quit: bool,
@@ -32,17 +51,52 @@ impl App {
 
     pub fn liststate_decrement(&mut self) {
         if let Some(current) = self.todo_select_state.selected() {
-            if current > 0 {
+            if current > 1 {
                 if let Some(new_value) = current.checked_sub(1) {
                     self.todo_select_state.select(Some(new_value));
                 } else {
                     // underflow
-                    self.todo_select_state.select(Some(0));
+                    self.todo_select_state.select(Some(1));
                 }
             }
         } else {
-            self.todo_select_state.select(Some(0));
+            self.todo_select_state.select(Some(1));
         };
+    }
+
+    pub fn load_task_database(&mut self) -> Result<()> {
+        let conn = Connection::open("tasks.db")?;
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS task (
+            id INTEGER PRIMARY KEY,
+            title TEXT NOT NULL,
+            deadline TEXT)",
+            [],
+        )?;
+
+        // let task1 = Task {
+        //     id: 1,
+        //     title: "Urgent Work".to_string(),
+        //     deadline: "18-01-2023".to_string(),
+        // };
+        //
+        // conn.execute)?;
+
+        let mut stmt = conn.prepare("SELECT * FROM task")?;
+        let task_iter = stmt.query_map([], |row| {
+            Ok(Task {
+                id: row.get(0)?,
+                title: row.get(1)?,
+                deadline: row.get(2)?,
+            })
+        })?;
+
+        for task in task_iter {
+            let task = task.unwrap();
+            self.todo_items.push(task.get_format_string());
+        }
+
+        Ok(())
     }
 }
 #[cfg(test)]
