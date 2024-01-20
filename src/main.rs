@@ -15,6 +15,7 @@ pub mod update;
 use app::{App, Task};
 use event::{Event, EventHandler};
 use ratatui::{backend::CrosstermBackend, Terminal};
+use rusqlite::Connection;
 use tui::Tui;
 use update::update;
 type Err = Box<dyn std::error::Error>;
@@ -22,6 +23,7 @@ type Result<T> = std::result::Result<T, Err>;
 fn main() -> Result<()> {
     // Create an application.
     let mut app = App::new();
+    let conn = Connection::open("task.db")?;
 
     app.todo_items = vec![
         String::from("TASK                DEADLINE"),
@@ -31,7 +33,7 @@ fn main() -> Result<()> {
         String::from("lmaoo"),
     ];
     app.todo_select_state.select(Some(1));
-    app.load_task_database();
+    app.load_database(&conn)?;
 
     // Initialize the terminal user interface.
     let backend = CrosstermBackend::new(std::io::stderr());

@@ -1,9 +1,9 @@
 use ratatui::widgets::ListState;
 use rusqlite::{Connection, Result};
 use std::cmp::min;
+
 #[derive(Debug)]
 pub struct Task {
-    id: u32,
     title: String,
     deadline: String,
 }
@@ -84,30 +84,27 @@ impl App {
         };
     }
 
-    pub fn load_task_database(&mut self) -> Result<()> {
-        let conn = Connection::open("tasks.db")?;
+    pub fn insert_database(&mut self, conn: &Connection, values: (String, String)) -> Result<()> {
+        conn.execute(
+            "INSERT INTO TABLE task(title, deadline) values (?1, ?2)",
+            values,
+        )?;
+        Ok(())
+    }
+
+    pub fn load_database(&mut self, conn: &Connection) -> Result<()> {
         conn.execute(
             "CREATE TABLE IF NOT EXISTS task (
-            id INTEGER PRIMARY KEY,
             title TEXT NOT NULL,
             deadline TEXT)",
             [],
         )?;
 
-        // let task1 = Task {
-        //     id: 1,
-        //     title: "Urgent Work".to_string(),
-        //     deadline: "18-01-2023".to_string(),
-        // };
-        //
-        // conn.execute)?;
-
         let mut stmt = conn.prepare("SELECT * FROM task")?;
         let task_iter = stmt.query_map([], |row| {
             Ok(Task {
-                id: row.get(0)?,
-                title: row.get(1)?,
-                deadline: row.get(2)?,
+                title: row.get(0)?,
+                deadline: row.get(1)?,
             })
         })?;
 
@@ -122,4 +119,69 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    #[test]
+    fn test_load_database() {
+        let mut app = App::new();
+        let conn = Connection::open("test.db").expect("Database creation failed");
+        conn.execute(
+            "CREATE TABLE task (
+            title TEXT NOT NULL,
+            deadline TEXT)",
+            [],
+        )
+        .expect("Initial table creation failed");
+
+        let items: Vec<Task> = vec![
+            Task {
+                title: "Urgent Work".to_string(),
+                deadline: "18-01-2024".to_string(),
+            },
+            Task {
+                title: "Less urgent work".to_string(),
+                deadline: "20-01-2024".to_string(),
+            },
+        ];
+
+        let mut app_tasks: Vec<String> = vec![];
+
+        for item in items {
+            app_tasks.push(item.get_format_string());
+            conn.execute(
+                "INSERT INTO task (title, deadline) VALUES (?1, ?2)",
+                (item.title, item.deadline),
+            )
+            .expect("Insertion failed");
+        }
+
+        let _ = app.load_database(&conn);
+
+        assert_eq!(app.todo_items, app_tasks);
+        conn.close();
+        let _ = fs::remove_file("test.db");
+    }
+
+    #[test]
+    fn test_insert_database() {
+        let mut app = App::new();
+        let conn = Connection::open("test.db").expect("Database creation failed");
+        conn.execute(
+            "CREATE TABLE task (
+            title TEXT NOT NULL,
+            deadline TEXT)",
+            [],
+        )
+        .expect("Initial table creation failed");
+
+        let values = ("Big task".to_string(), "04-02-2024".to_string());
+
+        app.insert_database(&conn, values);
+
+        // let mut stmt = conn
+        //     .prepare("SELECT * FROM task")
+        //     .expect("connection failed to prepare");
+        // let mut values_from_database = stmt
+        //     .query_map([], |row| Ok(row.get(0)?, row.get(1)?))
+        //     .expect("Failed to get rows");
+    }
 }
