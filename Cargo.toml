@@ -9,4 +9,5 @@ edition = "2021"
 rusqlite = "0.30.0"
 chrono = "0.4.31"
 crossterm = "0.27.0"
-ratatui = "0.25.0"
+ratatui = {version = "0.25.0", features = ["widget-calendar"]}
+time = "0.3.31"

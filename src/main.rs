@@ -12,7 +12,7 @@ pub mod tui;
 
 /// Application updater.
 pub mod update;
-use app::{App, Task};
+use app::App;
 use event::{Event, EventHandler};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use rusqlite::Connection;

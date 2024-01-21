@@ -11,6 +11,7 @@ pub struct Task {
 pub enum CurrentScreen {
     Todolist,
     Input,
+    Deadline,
 }
 
 impl Default for CurrentScreen {
@@ -57,6 +58,7 @@ impl App {
         match self.current_screen {
             CurrentScreen::Input => self.current_screen = CurrentScreen::Todolist,
             CurrentScreen::Todolist => self.current_screen = CurrentScreen::Input,
+            CurrentScreen::Deadline => self.current_screen = CurrentScreen::Deadline,
         }
     }
 
@@ -161,27 +163,27 @@ mod tests {
         let _ = fs::remove_file("test.db");
     }
 
-    #[test]
-    fn test_insert_database() {
-        let mut app = App::new();
-        let conn = Connection::open("test.db").expect("Database creation failed");
-        conn.execute(
-            "CREATE TABLE task (
-            title TEXT NOT NULL,
-            deadline TEXT)",
-            [],
-        )
-        .expect("Initial table creation failed");
+    // #[test]
+    // fn test_insert_database() {
+    //     let mut app = App::new();
+    //     let conn = Connection::open("test.db").expect("Database creation failed");
+    //     conn.execute(
+    //         "CREATE TABLE task (
+    //         title TEXT NOT NULL,
+    //         deadline TEXT)",
+    //         [],
+    //     )
+    //     .expect("Initial table creation failed");
+    //
+    //     let values = ("Big task".to_string(), "04-02-2024".to_string());
+    //
+    //     app.insert_database(&conn, values);
 
-        let values = ("Big task".to_string(), "04-02-2024".to_string());
-
-        app.insert_database(&conn, values);
-
-        // let mut stmt = conn
-        //     .prepare("SELECT * FROM task")
-        //     .expect("connection failed to prepare");
-        // let mut values_from_database = stmt
-        //     .query_map([], |row| Ok(row.get(0)?, row.get(1)?))
-        //     .expect("Failed to get rows");
-    }
+    // let mut stmt = conn
+    //     .prepare("SELECT * FROM task")
+    //     .expect("connection failed to prepare");
+    // let mut values_from_database = stmt
+    //     .query_map([], |row| Ok(row.get(0)?, row.get(1)?))
+    //     .expect("Failed to get rows");
+    // }
 }

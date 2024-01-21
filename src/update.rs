@@ -25,5 +25,6 @@ pub fn update(app: &mut App, key_event: KeyEvent) {
             KeyCode::Esc => app.quit(),
             _ => (),
         },
+        _ => {}
     }
 }
