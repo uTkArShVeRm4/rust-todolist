@@ -5,6 +5,7 @@ type Result<T> = std::result::Result<T, Err>;
 
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
+    style::{Color, SetBackgroundColor},
     terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
 };
 
@@ -54,7 +55,7 @@ impl Tui {
     pub fn enter(&mut self) -> Result<()> {
         terminal::enable_raw_mode()?;
         crossterm::execute!(io::stderr(), EnterAlternateScreen, EnableMouseCapture)?;
-
+        SetBackgroundColor(Color::Black);
         // Define a custom panic hook to reset the terminal properties.
         // This way, you won't have your terminal messed up if an unexpected error happens.
         let panic_hook = panic::take_hook();

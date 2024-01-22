@@ -1,7 +1,7 @@
+use chrono::{self, Datelike};
 use ratatui::widgets::ListState;
 use rusqlite::{Connection, Result};
 use std::cmp::min;
-
 #[derive(Debug)]
 pub struct Task {
     title: String,
@@ -38,12 +38,15 @@ pub struct App {
     pub todo_select_state: ListState,
     pub current_input: String,
     pub current_screen: CurrentScreen,
+    pub current_date: u8,
 }
 
 impl App {
     /// Constructs a new instance of [`App`].
     pub fn new() -> Self {
-        Self::default()
+        let mut app = Self::default();
+        app.current_date = chrono::Utc::now().ordinal() as u8;
+        app
     }
 
     /// Handles the tick event of the terminal.
@@ -56,10 +59,18 @@ impl App {
 
     pub fn toggle_screen(&mut self) {
         match self.current_screen {
-            CurrentScreen::Input => self.current_screen = CurrentScreen::Todolist,
+            CurrentScreen::Input => self.current_screen = CurrentScreen::Deadline,
             CurrentScreen::Todolist => self.current_screen = CurrentScreen::Input,
-            CurrentScreen::Deadline => self.current_screen = CurrentScreen::Deadline,
+            CurrentScreen::Deadline => self.current_screen = CurrentScreen::Todolist,
         }
+    }
+
+    pub fn date_increment(&mut self) {
+        self.current_date += 1;
+    }
+
+    pub fn date_decrement(&mut self) {
+        self.current_date -= 1;
     }
 
     pub fn liststate_increment(&mut self) {

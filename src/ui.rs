@@ -68,23 +68,39 @@ pub fn render(app: &mut App, f: &mut Frame) {
 
     let now = chrono::Utc::now();
 
-    let date = time::Date::from_ordinal_date(now.year(), now.ordinal() as u16).unwrap();
+    let date = time::Date::from_ordinal_date(now.year(), app.current_date as u16).unwrap();
     // let today_style = CalendarEventStore::today(Style::new().yellow());
-    let today_style = CalendarEventStore::default();
-    let calendar = Monthly::new(date, today_style)
-        .block(
-            Block::default()
-                .title("Deadline")
-                .title_alignment(Alignment::Center)
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .yellow(),
-        )
-        .show_month_header(Style::default().yellow());
+
+    let hint_text = Paragraph::new(
+        "Esc to exit, Tab to move between screen.\nUp and Down to move inside the screen.",
+    )
+    .alignment(Alignment::Center)
+    .yellow();
+
     match app.current_screen {
         CurrentScreen::Todolist => {
+            let mut today_style = CalendarEventStore::default();
+            today_style.add(
+                date,
+                Style::default().add_modifier(Modifier::UNDERLINED), // .add_modifier(Modifier::SLOW_BLINK),
+            );
+            let calendar = Monthly::new(date, today_style)
+                .block(
+                    Block::default()
+                        .title("Deadline")
+                        .title_alignment(Alignment::Center)
+                        .borders(Borders::ALL)
+                        .border_type(BorderType::Rounded)
+                        .yellow(),
+                )
+                .show_month_header(Style::default().yellow());
+
             f.render_stateful_widget(
-                list.highlight_style(Style::default().add_modifier(Modifier::UNDERLINED)),
+                list.highlight_style(
+                    Style::default()
+                        .add_modifier(Modifier::UNDERLINED)
+                        .add_modifier(Modifier::SLOW_BLINK),
+                ),
                 list_layout,
                 &mut app.todo_select_state,
             );
@@ -101,8 +117,25 @@ pub fn render(app: &mut App, f: &mut Frame) {
                 inputs_layout[0],
             );
             f.render_widget(calendar, inputs_layout[1]);
+            f.render_widget(hint_text, screen_layout[2]);
         }
         CurrentScreen::Input => {
+            let mut today_style = CalendarEventStore::default();
+            today_style.add(
+                date,
+                Style::default().add_modifier(Modifier::UNDERLINED), // .add_modifier(Modifier::SLOW_BLINK),
+            );
+            let calendar = Monthly::new(date, today_style)
+                .block(
+                    Block::default()
+                        .title("Deadline")
+                        .title_alignment(Alignment::Center)
+                        .borders(Borders::ALL)
+                        .border_type(BorderType::Rounded)
+                        .yellow(),
+                )
+                .show_month_header(Style::default().yellow());
+
             f.render_stateful_widget(list, list_layout, &mut app.todo_select_state);
             f.render_widget(
                 Paragraph::new(input_text)
@@ -118,7 +151,43 @@ pub fn render(app: &mut App, f: &mut Frame) {
                 inputs_layout[0],
             );
             f.render_widget(calendar, inputs_layout[1]);
+
+            f.render_widget(hint_text, screen_layout[2]);
         }
-        CurrentScreen::Deadline => {}
+        CurrentScreen::Deadline => {
+            let mut today_style = CalendarEventStore::default();
+            today_style.add(
+                date,
+                Style::default()
+                    .add_modifier(Modifier::UNDERLINED)
+                    .add_modifier((Modifier::SLOW_BLINK)), // .add_modifier(Modifier::SLOW_BLINK),
+            );
+            let calendar = Monthly::new(date, today_style)
+                .block(
+                    Block::default()
+                        .title("Deadline")
+                        .title_alignment(Alignment::Center)
+                        .borders(Borders::ALL)
+                        .border_type(BorderType::Rounded)
+                        .yellow(),
+                )
+                .show_month_header(Style::default().yellow());
+
+            f.render_stateful_widget(list, list_layout, &mut app.todo_select_state);
+            f.render_widget(
+                Paragraph::new(input_text)
+                    .block(
+                        Block::default()
+                            .title("Input")
+                            .title_alignment(Alignment::Center)
+                            .borders(Borders::ALL)
+                            .border_type(BorderType::Rounded),
+                    )
+                    .style(Style::default().fg(Color::Yellow)),
+                inputs_layout[0],
+            );
+            f.render_widget(calendar, inputs_layout[1]);
+            f.render_widget(hint_text, screen_layout[2]);
+        }
     };
 }

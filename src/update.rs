@@ -25,6 +25,12 @@ pub fn update(app: &mut App, key_event: KeyEvent) {
             KeyCode::Esc => app.quit(),
             _ => (),
         },
-        _ => {}
+        CurrentScreen::Deadline => match key_event.code {
+            KeyCode::Tab => app.toggle_screen(),
+            KeyCode::Esc => app.quit(),
+            KeyCode::Up => app.date_decrement(),
+            KeyCode::Down => app.date_increment(),
+            _ => (),
+        },
     }
 }
